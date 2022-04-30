@@ -40,7 +40,7 @@ def process(name: str = Body(...),
     # state = data['state']
     # Write existing states from arduino
     with open("./db/states.json", "w") as f:
-        f.write(json.dumps({"name": name, "state": LED}))
+        f.write(json.dumps({"name": name, "LED": LED}))
 
     # Get required states
     with open("./db/required.json") as f:
