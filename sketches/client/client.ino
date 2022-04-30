@@ -44,6 +44,7 @@ void setup() {
 
 
 void loop() {
+    pinMode(LED_BUILTIN, OUTPUT);
     if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
         HTTPClient http;
         http.begin(client, "http://192.168.43.1:8000/interact");   // pass Server IP Address here
@@ -54,8 +55,9 @@ void loop() {
         if (httpCode > 0) {
             String payload = http.getString();
             Serial.println(payload);
-            deserializeJson(doc, http.getStream());
+            deserializeJson(doc, payload);
             http.end();
+            Serial.println("doc attr: " + doc["LED"].as<String>());
             digitalWrite(LED_BUILTIN, doc["LED"].as<int>());
         }
         else {

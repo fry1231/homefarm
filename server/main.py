@@ -21,8 +21,8 @@ def read_root():
         <br>
         <iframe name="states" style="display:none;"></iframe>
         <form action="/led" method="post" target="states">
-            <input type="submit" name="ledstate" value=1>ON</button>
-            <input type="submit" name="ledstate" value=0>OFF</button>
+            <input type="submit" name="ledstate" value=0>ON</button>
+            <input type="submit" name="ledstate" value=1>OFF</button>
         </form>
     """
     return HTMLResponse(content=html_content, status_code=200)
