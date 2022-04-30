@@ -46,7 +46,7 @@ void setup() {
 void loop() {
     if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
         HTTPClient http;
-        http.begin(client, "http://192.168.43.1/interact");   // pass Server IP Address here
+        http.begin(client, "http://192.168.43.1:8000/interact");   // pass Server IP Address here
         http.addHeader("Content-Type", "application/json");
         int httpCode = http.POST(getState());
         if (httpCode > 0) {
