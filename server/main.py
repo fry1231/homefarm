@@ -1,0 +1,59 @@
+import orjson
+from typing import Optional, List, Any, Dict
+from fastapi import FastAPI, HTTPException, Body, Request, Form
+from fastapi.responses import ORJSONResponse, FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from server.config import CONFIG
+from server.models import States
+import uvicorn
+
+
+app = FastAPI()
+
+
+@app.get("/")
+def read_root():
+    with open("./db/states.json") as f:
+        states = orjson.loads(f.read())
+    html_content = f"""
+        <br>
+        <h3>Current LED state: {'ON' if states["LED"] else 'OFF'}</h3>
+        <br>
+        <iframe name="states" style="display:none;"></iframe>
+        <form action="/led" method="post" target="states">
+            <input type="submit" name="led" value=1>ON</button>
+            <input type="submit" name="led" value=0>OFF</button>
+        </form>
+    """
+    return HTMLResponse(content=html_content, status_code=200)
+
+
+@app.post("/interact")
+def process(name: str,
+            state: int):
+    """
+    Read data from arduino
+    Send back required states
+    """
+    # Write existing states from arduino
+    with open("./db/states.json", "w") as f:
+        f.write(orjson.dumps({"name": name, "state": state}).decode("utf-8"))
+
+    # Get required states
+    with open("./db/required.json") as f:
+        states = orjson.loads(f.read())
+    return ORJSONResponse(states)
+
+
+@app.post("/led")
+def led(ledstate: str = Form(...)):
+    """
+    Change state in DB
+    """
+    with open("./db/required.json", 'w') as f:
+        f.write(orjson.dumps({"LED": int(ledstate)}).decode("utf-8"))
+    return read_root()
+
+
+if __name__ == '__main__':
+    uvicorn.run(app, port=8000, host="0.0.0.0")
