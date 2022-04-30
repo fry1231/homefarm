@@ -10,8 +10,8 @@ const char* host = "192.168.43.1";  //Server IP Address here
 
 const char* boardName = "farm";
 
-char* json;
-HTTPClient client;
+String json;
+WiFiClient client;
 DynamicJsonDocument doc(1024);
 //StaticJsonBuffer<1024> jsonBuffer; // compute via https://arduinojson.org/v5/assistant/
 
@@ -45,16 +45,17 @@ void setup() {
 
 void loop() {
     if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
-        client.begin("192.168.43.1/interact");   // pass Server IP Address here
-        client.addHeader("Content-Type", "application/json");
-        client.POST(getState());
-
-        String payload = client.getString();
-        Serial.println(payload);
-
-        deserializeJson(doc, client.getStream());
-
-        digitalWrite(LED_BUILTIN, doc["LED"].as<int>());
+        HTTPClient http;
+        http.begin(client, "http://192.168.43.1/interact");   // pass Server IP Address here
+        http.addHeader("Content-Type", "application/json");
+        int httpCode = http.POST(getState());
+        if (httpCode > 0) {
+            String payload = http.getString();
+            Serial.println(payload);
+            deserializeJson(doc, http.getStream());
+            http.end();
+            digitalWrite(LED_BUILTIN, doc["LED"].as<int>());
+        }
     }
   delay(500);
 
@@ -62,7 +63,7 @@ void loop() {
 
 
 String getState() {
-    doc["name"] = boardName;
+    //doc["name"] = boardName;
 
     // Get pin state
     doc["state"] = digitalRead(LED_BUILTIN);

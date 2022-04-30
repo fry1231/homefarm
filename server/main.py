@@ -1,7 +1,7 @@
-import orjson
+import json
 from typing import Optional, List, Any, Dict
 from fastapi import FastAPI, HTTPException, Body, Request, Form
-from fastapi.responses import ORJSONResponse, FileResponse, HTMLResponse
+from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from server.config import CONFIG
 from server.models import States
@@ -14,7 +14,7 @@ app = FastAPI()
 @app.get("/")
 def read_root():
     with open("./db/states.json") as f:
-        states = orjson.loads(f.read())
+        states = json.loads(f.read())
     html_content = f"""
         <br>
         <h3>Current LED state: {'ON' if states["LED"] else 'OFF'}</h3>
@@ -37,12 +37,12 @@ def process(name: str,
     """
     # Write existing states from arduino
     with open("./db/states.json", "w") as f:
-        f.write(orjson.dumps({"name": name, "state": state}).decode("utf-8"))
+        f.write(json.dumps({"name": name, "state": state}))
 
     # Get required states
     with open("./db/required.json") as f:
-        states = orjson.loads(f.read())
-    return ORJSONResponse(states)
+        states = json.loads(f.read())
+    return JSONResponse(states)
 
 
 @app.post("/led")
@@ -51,7 +51,7 @@ def led(ledstate: str = Form(...)):
     Change state in DB
     """
     with open("./db/required.json", 'w') as f:
-        f.write(orjson.dumps({"LED": int(ledstate)}).decode("utf-8"))
+        f.write(json.dumps({"LED": int(ledstate)}))
     return read_root()
 
 
