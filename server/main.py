@@ -29,15 +29,18 @@ def read_root():
 
 
 @app.post("/interact")
-def process(name: str,
-            state: int):
+def process(name: str = Body(...),
+            LED: int = Body(...)):
     """
     Read data from arduino
     Send back required states
     """
+    # data = json.loads(data)
+    # name = data['name']
+    # state = data['state']
     # Write existing states from arduino
     with open("./db/states.json", "w") as f:
-        f.write(json.dumps({"name": name, "state": state}))
+        f.write(json.dumps({"name": name, "state": LED}))
 
     # Get required states
     with open("./db/required.json") as f:

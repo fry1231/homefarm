@@ -58,12 +58,11 @@ void loop() {
         }
     }
   delay(500);
-
 }
 
 
 String getState() {
-    //doc["name"] = boardName;
+    doc["name"] = boardName;
 
     // Get pin state
     doc["state"] = digitalRead(LED_BUILTIN);
