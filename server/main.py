@@ -22,6 +22,9 @@ for i in range(60):
     five += 1
 
 
+working_hours = [i for i in range(8, 24)]
+
+
 @app.get("/")
 def read_root():
     with open("./db/states.json") as f:
@@ -57,7 +60,7 @@ def process(name: str = Body(...),
     with open("./db/required.json") as f:
         states = json.loads(f.read())
 
-    if datetime.now().minute not in working_minutes:
+    if datetime.now().minute not in working_minutes or datetime.now().hour not in working_hours:
         states['LED'] = 0
 
     return JSONResponse(states)
