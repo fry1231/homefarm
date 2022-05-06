@@ -22,7 +22,7 @@ for i in range(60):
     five += 1
 
 
-working_hours = [i for i in range(8, 24)]
+working_hours = [i for i in range(8, 24)] + [0]
 
 
 @app.get("/")
