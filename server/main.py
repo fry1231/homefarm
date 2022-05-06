@@ -6,9 +6,20 @@ from fastapi.staticfiles import StaticFiles
 from server.config import CONFIG
 from server.models import States
 import uvicorn
+from datetime import datetime
 
 
 app = FastAPI()
+
+
+working_minutes = []
+five = 0
+for i in range(60):
+    if five < 5:
+        working_minutes.append(i)
+    if i % 15 == 0:
+        five = -1
+    five += 1
 
 
 @app.get("/")
@@ -21,8 +32,8 @@ def read_root():
         <br>
         <iframe name="states" style="display:none;"></iframe>
         <form action="/led" method="post" target="states">
-            <input type="submit" name="ledstate" value=0>ON</button>
-            <input type="submit" name="ledstate" value=1>OFF</button>
+            <input type="submit" name="ledstate" value=1>ON</button>
+            <input type="submit" name="ledstate" value=0>OFF</button>
         </form>
     """
     return HTMLResponse(content=html_content, status_code=200)
@@ -45,6 +56,10 @@ def process(name: str = Body(...),
     # Get required states
     with open("./db/required.json") as f:
         states = json.loads(f.read())
+
+    if datetime.now().minute not in working_minutes:
+        states['LED'] = 0
+
     return JSONResponse(states)
 
 

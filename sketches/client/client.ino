@@ -3,12 +3,14 @@
 #include <ArduinoJson.h>
 
 
-const char* ssid     = "phone";
+const char* ssid     = "polinchek";
 const char* password = "122222322";
 
 const char* host = "192.168.43.1";  //Server IP Address here
 
 const char* boardName = "farm";
+
+const int compressor = 0;
 
 
 WiFiClient client;
@@ -37,14 +39,28 @@ void setup() {
     Serial.println("WiFi connected");
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
-
-
+    
     pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(compressor, OUTPUT);
+    
+    digitalWrite(LED_BUILTIN, 1);
+    delay(250);
+    digitalWrite(LED_BUILTIN, 0);
+    delay(250);
+    digitalWrite(LED_BUILTIN, 1);
+    delay(250);
+    digitalWrite(LED_BUILTIN, 0);
+    delay(250);
+    digitalWrite(LED_BUILTIN, 1);
+    delay(250);
+    digitalWrite(LED_BUILTIN, 0);
+    delay(250);
 }
 
 
 void loop() {
     pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(compressor, OUTPUT);
     if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
         HTTPClient http;
         http.begin(client, "http://192.168.43.1:8000/interact");   // pass Server IP Address here
@@ -57,14 +73,15 @@ void loop() {
             Serial.println(payload);
             deserializeJson(doc, payload);
             http.end();
-            Serial.println("doc attr: " + doc["LED"].as<String>());
+
+            digitalWrite(compressor, doc["LED"].as<int>());
             digitalWrite(LED_BUILTIN, doc["LED"].as<int>());
         }
         else {
             Serial.println("Unable to request");
         }
     }
-  delay(500);
+  delay(1000);
 }
 
 
