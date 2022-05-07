@@ -43,18 +43,32 @@ def read_root():
         normal = 'disabled'
 
     html_content = f"""
+        <script>
+        submitForms = function(){{
+            var formData = JSON.stringify($("#form1").serializeArray());
+            $.ajax({{
+              type: "POST",
+              url: "/led",
+              data: formData,
+              success: function(){{}},
+              dataType: "json",
+              contentType : "application/json"
+            }});
+        }}
+        </script>
         <br>
         <h3>Current LED state: {'ON' if states["LED"] else 'OFF'}</h3>
         <br>
         <iframe name="states" style="display:none;"></iframe>
-        <form action="/led" method="post" target="states">
-            <input type="submit" name="ledstate" value=1>ON</button>
-            <input type="submit" name="ledstate" value=0>OFF</button>
+        <form name="form1" action="/led" method="post" target="states">
+            <input type="submit" name="ledstate" value=1 />ON
+            <input type="submit" name="ledstate" value=0 />OFF
             <br>
-            <input type="submit" name="custom" value="neglect_hours" {neglect_hours}>neglect_hours</button>
-            <input type="submit" name="custom" value="forcibly_off" {forcibly_off}>forcibly_off</button>
-            <input type="submit" name="custom" value="normal" {normal}>forcibly_off</button>
+            <input type="submit" name="custom" value="neglect_hours" {neglect_hours}" />
+            <input type="submit" name="custom" value="forcibly_off" {forcibly_off}" />
+            <input type="submit" name="custom" value="normal" {normal}" />
         </form>
+        
     """
     return HTMLResponse(content=html_content, status_code=200)
 
@@ -95,16 +109,18 @@ def process(name: str = Body(...),
 
 
 @app.post("/led")
-def led(ledstate: str = Form(...),
-        custom: str = Form(...)):
+def led(payload: str = Body(...)):
     """
     Change state in DB
     """
-    with open("./db/required.json", 'w') as f:
-        f.write(json.dumps({"LED": int(ledstate)}))
+    payload = payload.split("=")
+    if payload[0] == 'ledstate':
 
-    with open("./db/custom.json", 'w') as f:
-        f.write(json.dumps({"custom": custom}))
+        with open("./db/required.json", 'w') as f:
+            f.write(json.dumps({"LED": int(payload[1])}))
+    elif payload[0] == 'custom':
+        with open("./db/custom.json", 'w') as f:
+            f.write(json.dumps({"custom": payload[1]}))
 
     return read_root()
 
