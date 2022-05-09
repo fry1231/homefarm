@@ -11,6 +11,7 @@ const char* host = "192.168.43.1";  //Server IP Address here
 const char* boardName = "farm";
 
 const int compressor = 0;
+const int interval = 10000;  // Interval between requests
 
 
 WiFiClient client;
@@ -43,8 +44,6 @@ void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(compressor, OUTPUT);
     
-    digitalWrite(LED_BUILTIN, 1);
-    delay(250);
     digitalWrite(LED_BUILTIN, 0);
     delay(250);
     digitalWrite(LED_BUILTIN, 1);
@@ -55,6 +54,7 @@ void setup() {
     delay(250);
     digitalWrite(LED_BUILTIN, 0);
     delay(250);
+    digitalWrite(LED_BUILTIN, 1);
 }
 
 
@@ -74,14 +74,13 @@ void loop() {
             deserializeJson(doc, payload);
             http.end();
 
-            digitalWrite(compressor, doc["LED"].as<int>());
-            digitalWrite(LED_BUILTIN, doc["LED"].as<int>());
+            digitalWrite(compressor, doc["LED"].as<bool>());
         }
         else {
             Serial.println("Unable to request");
         }
     }
-  delay(1000);
+  delay(interval);
 }
 
 

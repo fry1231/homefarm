@@ -1,5 +1,5 @@
 import json
-from typing import Optional, List, Any, Dict
+from typing import Optional, List, Any, Dict, Tuple
 from fastapi import FastAPI, HTTPException, Body, Request, Form
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -11,19 +11,45 @@ from datetime import datetime
 
 app = FastAPI()
 
+#%%
+def create_schedule(work_hours: List[int],
+                    work_time: int,
+                    sleep_time: int) -> Dict[int, List[Tuple[float, float]]]:
+    """
+    Create schedule in format of
+        {
+            hour1: [(start_minute, finish_minute), (start2, finish2), ...]
+            hour2: [...]
+        }
+    The start minute of the schedule is being reset after the last working hour or after a break in work_hours list
+    """
+    work_hours = sorted(work_hours)
+    start_minute = 0
+    schedule = {}
+    for i, hour in enumerate(work_hours):
+        schedule[hour] = [(i, i + work_time - 1) for i in range(start_minute, 60, sleep_time + work_time)]
+        # Reset if the break >= 1 hour
+        if i != 0:
+            if hour - work_hours[i-1] > 1:
+                start_minute = 0
+        # Correct last interval if it ends after 59 min
+        last_fin_minute = schedule[hour][-1][1]
+        last_start_minute = schedule[hour][-1][0]
+        if last_fin_minute >= 60:
+            schedule[hour][-1] = (last_start_minute, 59)
+        # Calculate starting minute of the next hour
+        start_minute = last_start_minute + sleep_time + work_time - 60
+    return schedule
 
-working_minutes = []
-five = 0
-for i in range(60):
-    if five < 5:
-        working_minutes.append(i)
-    if i % 15 == 0:
-        five = -1
-    five += 1
 
-
-working_hours = [i for i in range(8, 24)] + [0]
-
+work_time = 5
+sleep_time = 5
+schedule = create_schedule(work_hours=[i for i in range(8, 24)] + [0],
+                           work_time=work_time,
+                           sleep_time=sleep_time)
+schedule_all_day = create_schedule(work_hours=[i for i in range(24)],
+                                   work_time=work_time,
+                                   sleep_time=sleep_time)
 
 @app.get("/")
 def read_root():
@@ -96,15 +122,21 @@ def process(name: str = Body(...),
         custom = json.loads(f.read())
         custom = custom['custom']
 
-    if custom == 'neglect_hours':
-        if datetime.now().minute not in working_minutes:
+    current_hour = datetime.now().hour
+    current_minute = datetime.now().minute
+    if custom != 'forcibly_off':
+        if custom == 'neglect_hours':
+            hourly_schedule = schedule_all_day[current_hour]
+        elif custom == 'normal':
+            hourly_schedule = schedule[current_hour]
+        else:
+            raise AttributeError('Unknown custom parameter')
+        if any(interval[0] <= current_minute <= interval[1] for interval in hourly_schedule):
+            states['LED'] = 1
+        else:
             states['LED'] = 0
     else:
-        if datetime.now().minute not in working_minutes or \
-                datetime.now().hour not in working_hours or \
-                custom == 'forcibly_off':
-            states['LED'] = 0
-
+        states['LED'] = 0
     return JSONResponse(states)
 
 
