@@ -1,10 +1,7 @@
 import json
-from typing import Optional, List, Any, Dict, Tuple
-from fastapi import FastAPI, HTTPException, Body, Request, Form
-from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from server.config import CONFIG
-from server.models import States
+from typing import List, Dict, Tuple
+from fastapi import FastAPI, Body
+from fastapi.responses import JSONResponse, HTMLResponse
 import uvicorn
 from datetime import datetime
 
@@ -43,14 +40,14 @@ def create_schedule(work_hours: List[int],
 
 
 work_time = 5
-sleep_time = 5
+sleep_time = 0
 schedule = create_schedule(work_hours=[i for i in range(8, 24)] + [0],
                            work_time=work_time,
                            sleep_time=sleep_time)
 schedule_all_day = create_schedule(work_hours=[i for i in range(24)],
                                    work_time=work_time,
                                    sleep_time=sleep_time)
-
+#%%
 @app.get("/")
 def read_root():
     with open("./db/states.json") as f:
