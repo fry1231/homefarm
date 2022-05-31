@@ -40,7 +40,7 @@ def create_schedule(work_hours: List[int],
 
 
 work_time = 5
-sleep_time = 0
+sleep_time = 5
 schedule = create_schedule(work_hours=[i for i in range(8, 24)] + [0],
                            work_time=work_time,
                            sleep_time=sleep_time)
