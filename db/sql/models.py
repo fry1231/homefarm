@@ -11,21 +11,41 @@ class Board(Base):
     name = Column(String, unique=True)
     description = Column(String)
 
-    pins = relationship("Pin", back_populates="board")
+    things = relationship("Thing", back_populates="board")
 
 
-class Pin(Base):
-    __tablename__ = "pins"
+class Thing(Base):
+    __tablename__ = "things"
 
     id = Column(Integer, primary_key=True, index=True)
     analog = Column(Boolean)
-    number = Column(Integer, unique=True)
-    is_readable = Column(Boolean)
+    pin = Column(Integer, unique=True)
+    is_writable = Column(Boolean)
 
     equipment_name = Column(String)
     equipment_desc = Column(String)
     tsdb_tag = Column(String, unique=True)
-    required_state = Column(Boolean)
+    schedule_id = Column(Integer, ForeignKey('schedules.id'))
 
-    board = relationship("Board", back_populates="pins")
+    board = relationship("Board", back_populates="things")
 
+
+class Schedule(Base):
+    __tablename__ = "schedules"
+
+    id = Column(Integer, primary_key=True, index=True)
+    desc = Column(String)
+    hour = Column(Integer)
+    list_of_tuple_minutes = Column(String)
+
+
+class Triggers(Base):
+    __tablename__ = "triggers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    on = Column(Integer, ForeignKey("things.id"), nullable=False)
+    do = Column(Integer, ForeignKey("things.id"), nullable=False)
+    set = Column(Integer, nullable=False)
+    for_seconds = Column(Integer)
+    until_sensor_id = Column(Integer, ForeignKey("things.id"))
+    until_sensor_val = Column(Integer)
