@@ -95,7 +95,7 @@ def read_root():
         normal = 'disabled'
 
     led_temp = redis.get('led_temp')
-
+    print(led_temp)
     html_content = f"""
         <script>
         submitForms = function(){{
@@ -122,6 +122,7 @@ def read_root():
             <input type="submit" name="custom" value="forcibly_off" {forcibly_off}" />
             <input type="submit" name="custom" value="normal" {normal}" />
         </form>
+
         <h1> {led_temp} </h1>
         <iframe name="coco" style="display:none;"></iframe>
         <form name="form2" action="/process" method="post" target="coco">
