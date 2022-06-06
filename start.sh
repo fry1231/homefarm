@@ -1,0 +1,1 @@
+redis-server && python -m server.main

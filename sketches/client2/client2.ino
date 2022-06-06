@@ -15,7 +15,7 @@ const char* host = "192.168.43.1";  //Server IP Address here
 const char* boardName = "coco";
 
 
-int interval = 10000;  // Interval between requests
+int interval = 5000;  // Interval between requests
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature tempSensor(&oneWire);
@@ -49,7 +49,7 @@ void setup() {
     tempSensor.setResolution(12);
 
     pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(compressor, OUTPUT);
+    pinMode(LED_PIN, OUTPUT);
     
     digitalWrite(LED_BUILTIN, 0);
     delay(250);
@@ -67,7 +67,7 @@ void setup() {
 
 void loop() {
     pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(compressor, OUTPUT);
+    pinMode(LED_PIN, OUTPUT);
     if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
         HTTPClient http;
         http.begin(client, "http://192.168.43.1:8000/interact");   // pass Server IP Address here
