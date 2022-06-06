@@ -94,8 +94,7 @@ def read_root():
     if custom == 'normal':
         normal = 'disabled'
 
-    led_temp = redis.get('led_temp')
-    print(led_temp)
+    led_temp = await redis.get('led_temp')
     html_content = f"""
         <script>
         submitForms = function(){{
