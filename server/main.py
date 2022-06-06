@@ -78,7 +78,7 @@ test_schedule = create_schedule(work_hours=[i for i in range(3, 8)],
 #%%
 
 @app.get("/")
-def read_root():
+async def read_root():
     with open("./db/states.json") as f:
         states = json.loads(f.read())
 
