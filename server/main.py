@@ -94,6 +94,8 @@ def read_root():
     if custom == 'normal':
         normal = 'disabled'
 
+    led_temp = redis.get('led_temp')
+
     html_content = f"""
         <script>
         submitForms = function(){{
@@ -120,7 +122,7 @@ def read_root():
             <input type="submit" name="custom" value="forcibly_off" {forcibly_off}" />
             <input type="submit" name="custom" value="normal" {normal}" />
         </form>
-        
+        <h1> {led_temp} </h1>
         <iframe name="coco" style="display:none;"></iframe>
         <form name="form2" action="/process" method="post" target="coco">
             <input type="submit" name="coco_led" value=1 />ON
@@ -176,6 +178,7 @@ async def process(request: Request):
     elif name == 'coco':
         await redis.set('led_temp', data['led_temp'])
         coco_led_state = await redis.get('coco_led')
+        return JSONResponse({"coco_led": int(coco_led_state)})
 
 
 @app.post("/process")
