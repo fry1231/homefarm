@@ -161,7 +161,7 @@ async def interact(request: Request):
 
         states = {}
 
-        if not redis.exists('custom'):
+        if not await redis.exists('custom'):
             await set_default_redis('custom')
         custom = await redis.get('custom')
         current_hour = datetime.now().hour
@@ -173,7 +173,7 @@ async def interact(request: Request):
             elif custom == 'normal':
                 hourly_schedule = schedule[current_hour]
             else:
-                raise AttributeError('Unknown custom parameter')
+                raise AttributeError(f'Unknown custom parameter {custom}')
             if any(interval[0] <= current_minute <= interval[1] for interval in hourly_schedule):
                 states['LED'] = 1
             else:
@@ -184,7 +184,7 @@ async def interact(request: Request):
 
     elif name == 'coco':
         await redis.set('led_temp', data['led_temp'])
-        if not redis.exists('coco_led'):
+        if not await redis.exists('coco_led'):
             await set_default_redis('coco_led')
         coco_led_state = await redis.get('coco_led')
         return JSONResponse({"coco_led": int(coco_led_state)})
@@ -212,12 +212,12 @@ async def led(payload: str = Body(...)):
 async def set_default_redis(key: str = None):
     if key:
         if key == 'custom':
-            await redis.set('custom', 'forsibly_off')
+            await redis.set('custom', 'forcibly_off')
         else:
             await redis.set(key, 1)
     else:
         await redis.set('coco_led', 1)
-        await redis.set('custom', 'forsibly_off')
+        await redis.set('custom', 'forcibly_off')
         await redis.set('ledstate', 1)
 
 
