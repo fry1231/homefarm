@@ -206,7 +206,7 @@ async def process(payload: str = Body(...)):
         #     f.write(json.dumps({"custom": payload[1]}))
     elif payload[0] == 'coco_led':
         await redis.set('coco_led', int(payload[1]))
-    return RedirectResponse("/")
+    return RedirectResponse("/", status_code=302)
 
 
 async def set_default_redis(key: str = None):
