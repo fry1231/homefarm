@@ -30,9 +30,9 @@ async def get_states():
         }
     )
     """
-    redis.set('led_temp', 0.0)
-    redis.set('coco_led', 0)
-#%%
+    await redis.set('led_temp', 0.0)
+    await redis.set('coco_led', 0)
+
 
 def create_schedule(work_hours: List[int],
                     work_time: int,
@@ -75,7 +75,7 @@ schedule_all_day = create_schedule(work_hours=[i for i in range(24)],
 test_schedule = create_schedule(work_hours=[i for i in range(3, 8)],
                                 work_time=30,
                                 sleep_time=2)
-#%%
+
 
 @app.get("/")
 async def read_root():
@@ -134,7 +134,7 @@ async def read_root():
 
 
 @app.post("/interact")
-async def process(request: Request):
+async def interact(request: Request):
         # name: str = Body(...),
         #           LED: int = Body(...)):
     """
@@ -146,20 +146,26 @@ async def process(request: Request):
 
     # Write existing states from arduino
     if name == 'farm':
-        LED = data['LED']
-        with open("./db/states.json", "w") as f:
-            f.write(json.dumps({"name": name, "LED": LED}))
+        # LED = data['LED']
+        # with open("./db/states.json", "w") as f:
+        #     f.write(json.dumps({"name": name, "LED": LED}))
 
         # Get required states
-        with open("./db/required.json") as f:
-            states = json.loads(f.read())
+        # with open("./db/required.json") as f:
+        #     states = json.loads(f.read())
 
         # Get user defined state
-        with open("./db/custom.json") as f:
-            custom = json.loads(f.read())
-            custom = custom['custom']
+        # with open("./db/custom.json") as f:
+        #     custom = json.loads(f.read())
+        #     custom = custom['custom']
 
+        states = {}
+
+        if not redis.exists('custom'):
+            await set_default_redis('custom')
+        custom = await redis.get('custom')
         current_hour = datetime.now().hour
+
         current_minute = datetime.now().minute
         if custom != 'forcibly_off':
             if custom == 'neglect_hours':
@@ -175,8 +181,11 @@ async def process(request: Request):
         else:
             states['LED'] = 0
         return JSONResponse(states)
+
     elif name == 'coco':
         await redis.set('led_temp', data['led_temp'])
+        if not redis.exists('coco_led'):
+            await set_default_redis('coco_led')
         coco_led_state = await redis.get('coco_led')
         return JSONResponse({"coco_led": int(coco_led_state)})
 
@@ -188,14 +197,28 @@ async def led(payload: str = Body(...)):
     """
     payload = payload.split("=")
     if payload[0] == 'ledstate':
-        with open("./db/required.json", 'w') as f:
-            f.write(json.dumps({"LED": int(payload[1])}))
+        await redis.set('ledstate', int(payload[1]))
+        # with open("./db/required.json", 'w') as f:
+        #     f.write(json.dumps({"LED": int(payload[1])}))
     elif payload[0] == 'custom':
-        with open("./db/custom.json", 'w') as f:
-            f.write(json.dumps({"custom": payload[1]}))
+        await redis.set('custom', payload[1])
+        # with open("./db/custom.json", 'w') as f:
+        #     f.write(json.dumps({"custom": payload[1]}))
     elif payload[0] == 'coco_led':
         await redis.set('coco_led', int(payload[1]))
     return read_root()
+
+
+async def set_default_redis(key: str = None):
+    if key:
+        if key == 'custom':
+            await redis.set('custom', 'forsibly_off')
+        else:
+            await redis.set(key, 1)
+    else:
+        await redis.set('coco_led', 1)
+        await redis.set('custom', 'forsibly_off')
+        await redis.set('ledstate', 1)
 
 
 # app.mount("", StaticFiles(directory="sveltekit/public/", html=True), name="static")
