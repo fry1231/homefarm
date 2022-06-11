@@ -1,7 +1,7 @@
 import json
 from typing import List, Dict, Tuple
 from fastapi import FastAPI, Body, Request
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import RedirectResponse, FileResponse
 import uvicorn
@@ -191,7 +191,7 @@ async def interact(request: Request):
 
 
 @app.post("/process")
-async def led(payload: str = Body(...)):
+async def process(payload: str = Body(...)):
     """
     Change state in DB
     """
@@ -206,7 +206,7 @@ async def led(payload: str = Body(...)):
         #     f.write(json.dumps({"custom": payload[1]}))
     elif payload[0] == 'coco_led':
         await redis.set('coco_led', int(payload[1]))
-    return read_root()
+    return RedirectResponse("/")
 
 
 async def set_default_redis(key: str = None):
